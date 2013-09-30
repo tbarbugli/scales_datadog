@@ -27,7 +27,7 @@ class DataDogPusher(object):
 
     def _sanitize(self, name):
         """Sanitize a name for datadog."""
-        return name.strip().replace(' ', '-').replace('.', '-').replace('/', '_')
+        return name.strip().replace(' ', '-').replace('/', '_')
 
     def _forbidden(self, path, value):
         """Is a stat forbidden? Goes through the rules to find one that
@@ -77,7 +77,7 @@ class DataDogPusher(object):
             if hasattr(value, '__call__'):
                 try:
                     value = value()
-                except:                       # pylint: disable=W0702
+                except Exception:
                     value = None
                     logging.exception(
                         'Error when calling stat function for push')
@@ -144,6 +144,6 @@ class DataDogPeriodicPusher(threading.Thread, DataDogPusher):
                 logging.info('Done pushing stats to DataDog')
             except SSLError:
                 logging.exception("Connection issue with datadog")
-            except:
+            except Exception:
                 logging.exception('Exception while pushing stats to DataDog')
                 raise
