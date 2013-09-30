@@ -5,7 +5,9 @@ import os
 import threading
 import logging
 import time
+from ssl import SSLError
 from fnmatch import fnmatch
+import datetime
 
 
 class DataDogPusher(object):
@@ -56,13 +58,15 @@ class DataDogPusher(object):
                 return True
         return False  # Do not prune by default
 
-    def push(self, statsDict=None, prefix=None, path=None):
-        """Push stat values out to DataDog."""
+    def make_metrics(self, statsDict, prefix, path):
+        """ returns a dict with metric / values """
+        d = datetime.datetime.now()
+        now = int(time.mktime(d.timetuple()))
+        metrics = []
         if statsDict is None:
             statsDict = scales.getStats()
         prefix = prefix or ''
         path = path or '/'
-
         for name, value in statsDict.items():
             name = str(name)
             subpath = os.path.join(path, name)
@@ -79,12 +83,19 @@ class DataDogPusher(object):
                         'Error when calling stat function for push')
 
             if hasattr(value, 'iteritems'):
-                self.push(value, '%s%s.' %
+                metrics += self.make_metrics(value, '%s%s.' %
                           (prefix, self._sanitize(name)), subpath)
             elif self._forbidden(subpath, value):
                 continue
             elif type(value) in (int, long, float) and len(name) < 500:
-                self.api.metric(prefix + self._sanitize(name), value)
+                metrics.append({'metric': prefix + self._sanitize(name), 'points': [(now, value)]})
+        return metrics
+
+    def push(self, statsDict=None, prefix=None, path=None):
+        """Push stat values to DataDog."""
+        metrics = self.make_metrics(statsDict, prefix, path)
+        print 'push %r' % metrics
+        self.api.metrics(metrics)
 
     def _addRule(self, isWhitelist, rule):
         """Add an (isWhitelist, rule) pair to the rule list."""
@@ -131,6 +142,8 @@ class DataDogPeriodicPusher(threading.Thread, DataDogPusher):
             try:
                 self.push()
                 logging.info('Done pushing stats to DataDog')
+            except SSLError:
+                logging.exception("Connection issue with datadog")
             except:
                 logging.exception('Exception while pushing stats to DataDog')
                 raise
