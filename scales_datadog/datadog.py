@@ -8,6 +8,7 @@ import time
 from ssl import SSLError
 from fnmatch import fnmatch
 import datetime
+from socket import gethostname
 
 
 class DataDogPusher(object):
@@ -19,6 +20,7 @@ class DataDogPusher(object):
         stats. If it is not given, then a prefix will be derived from the
         hostname."""
         from dogapi import dog_http_api
+        self.hostname = gethostname()
         self.api = dog_http_api
         self.rules = []
         self.pruneRules = []
@@ -88,7 +90,11 @@ class DataDogPusher(object):
             elif self._forbidden(subpath, value):
                 continue
             elif type(value) in (int, long, float) and len(name) < 500:
-                metrics.append({'metric': prefix + self._sanitize(name), 'points': [(now, value)]})
+                metrics.append({
+                    'metric': prefix + self._sanitize(name),
+                    'points': [(now, value)],
+                    'host': self.hostname
+                })
         return metrics
 
     def push(self, statsDict=None, prefix=None, path=None):
