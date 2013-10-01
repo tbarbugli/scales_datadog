@@ -94,7 +94,6 @@ class DataDogPusher(object):
     def push(self, statsDict=None, prefix=None, path=None):
         """Push stat values to DataDog."""
         metrics = self.make_metrics(statsDict, prefix, path)
-        print 'push %r' % metrics
         self.api.metrics(metrics)
 
     def _addRule(self, isWhitelist, rule):
