@@ -4,9 +4,14 @@ __credits__ = []
 
 
 __license__ = 'BSD'
-__version__ = '0.5.2'
+__version__ = '0.5.5'
 __maintainer__ = 'Tommaso Barbugli'
 __email__ = 'tbarbugli@gmail.com'
 __status__ = 'Production'
 
-from datadog import DataDogPeriodicPusher
+try:
+    import greplin, dogapi
+except ImportError:
+    pass # probably importing this at install time
+else:
+    from datadog import DataDogPeriodicPusher
