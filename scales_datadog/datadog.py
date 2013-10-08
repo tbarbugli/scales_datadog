@@ -11,6 +11,9 @@ import datetime
 from socket import gethostname
 
 
+logger = logging.getLogger(__name__)
+
+
 class DataDogPusher(object):
 
     """A class that pushes all stat values to DataDog on-demand."""
@@ -81,7 +84,7 @@ class DataDogPusher(object):
                     value = value()
                 except Exception:
                     value = None
-                    logging.exception(
+                    logger.exception(
                         'Error when calling stat function for push')
 
             if hasattr(value, 'iteritems'):
@@ -140,15 +143,15 @@ class DataDogPeriodicPusher(threading.Thread, DataDogPusher):
     def run(self):
         """Loop forever, pushing out stats."""
         while True:
-            logging.info(
+            logger.info(
                 'DataDog pusher is sleeping for %d seconds', self.period)
             time.sleep(self.period)
-            logging.info('Pushing stats to DataDog')
+            logger.info('Pushing stats to DataDog')
             try:
                 self.push()
-                logging.info('Done pushing stats to DataDog')
+                logger.info('Done pushing stats to DataDog')
             except SSLError:
-                logging.exception("Connection issue with datadog")
+                logger.exception("Connection issue with datadog")
             except Exception:
-                logging.exception('Exception while pushing stats to DataDog')
+                logger.exception('Exception while pushing stats to DataDog')
                 raise

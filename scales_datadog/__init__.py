@@ -4,7 +4,7 @@ __credits__ = []
 
 
 __license__ = 'BSD'
-__version__ = '0.5.5'
+__version__ = '0.5.6'
 __maintainer__ = 'Tommaso Barbugli'
 __email__ = 'tbarbugli@gmail.com'
 __status__ = 'Production'
